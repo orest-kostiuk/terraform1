@@ -4,16 +4,35 @@ services:
   - name: docker:dind
     alias: docker
 
+stages:
+  - build
+  - deploy
+
 variables:
+  KUBECONFIG: /etc/deploy/kubeconfig.yaml
   DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
   DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 before_script:
-  - docker info
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 build:
   stage: build
+  image: docker:dind
   script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - echo $KUBECONFIG_FILE > $KUBECONFIG
+    - kubectl config use-context my-eks-cluster
+    - kubectl set image deployment/my-app my-app=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  environment:
+    name: production
+  only:
+    - master
