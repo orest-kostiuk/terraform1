@@ -10,7 +10,7 @@ stages:
 
 variables:
   KUBECONFIG: /etc/deploy/kubeconfig.yaml
-  DOCKER_HOST: tcp://docker:2375
+  DOCKER_HOST: unix:///var/run/docker.sock
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
