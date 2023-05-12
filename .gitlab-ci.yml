@@ -17,24 +17,16 @@ before_script:
 
 build:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:latest .
-
+    - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
 
 deploy:
   stage: deploy
+  image: bitnami/kubectl:latest
   script:
-    - apk add --update ca-certificates openssl curl tar gzip bash
-    - curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-    - chmod +x ./kubectl
-    - mv ./kubectl /usr/local/bin/kubectl
     - echo $KUBECONFIG_FILE > $KUBECONFIG
     - kubectl config use-context my-eks-cluster
-    - kubectl set image deployment/my-app my-app=$CI_REGISTRY_IMAGE:latest
+    - kubectl set image deployment/my-app my-app=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   environment:
     name: production
   only:
