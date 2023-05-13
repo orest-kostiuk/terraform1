@@ -1,33 +1,34 @@
-image: docker:latest
-
-services:
-  - name: docker:dind
-    alias: docker
-    entrypoint: [ "" ]
-    command: ["--privileged"]
+# default image
+image: ubuntu:20.10
 
 stages:
   - build
-  - deploy
+  - unit_testing
+  - deploy_staging
+  - deploy_production
+
+services:
+  - mysql:5.6.40
+  - redis:6
 
 variables:
-  KUBECONFIG: /etc/deploy/kubeconfig.yaml
-#  DOCKER_HOST: unix:///var/run/docker.sock  # Replace unix:///var/run/docker.sock with tcp://docker:2375
-  DOCKER_DRIVER: overlay2
+  APP_NAME: gastroli-api
+  MYSQL_ROOT_PASSWORD: hackme
+  DB_ADAPTER: mysql2
+  DB_ENCODING: utf8
+  DB_USERNAME: root
+  DB_PASSWORD: hackme
+  DB_HOST: mysql
+  VERSION: $CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  CACHE_REPO_IMAGE: $CI_REGISTRY_IMAGE
 
-before_script:
-  - docker version || true
-  - docker info || true
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  - ps aux || true
-
-build:
+build_staging:
   stage: build
-  image:  # Add this line
-    name: docker:latest  # Add this line
-    entrypoint: [ "" ]
-  services:
-    - docker:dind
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  tags:
+    - k8s
   only:
     refs:
       - devops
@@ -39,28 +40,150 @@ build:
   variables:
     RAILS_ENV: staging
     VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  tags:
-    - k8s
   environment:
-    name: dev
+    name: staging
   script:
-    - docker info
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
 
-
-
-deploy:
-  stage: deploy
-  image: bitnami/kubectl:latest
+build_production:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   tags:
     - k8s
-  script:
-    - echo $KUBECONFIG_FILE > $KUBECONFIG
-    - kubectl config use-context my-eks-cluster
-    - kubectl set image deployment/my-app my-app=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-  environment:
-    name: dev
   only:
-    - master
+    refs:
+      - devops
+      - production
+  variables:
+    RAILS_ENV: production
+    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  environment:
+    name: production
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
+
+#unit_testing:
+#  stage: unit_testing
+#  image: $ECR_REGISTRY/$APP_NAME:production-$VERSION
+#  tags:
+#    - k8s
+#  only:
+#    refs:
+#      - devops
+#      - develop
+#      - staging
+#      - master
+#      - production
+#  variables:
+#    RAILS_ENV: test
+#    DB_HOST: mysql
+#    DB_USERNAME: root
+#    DB_PASSWORD: hackme
+#  artifacts:
+#    paths:
+#      - /tmp/test-results
+#    expire_in: 1 week
+#  script:
+#    - echo "Testing.."
+
+deploy_sidekiq_to_staging:
+  stage: deploy_staging
+  when: manual
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  only:
+    refs:
+      - devops
+      - develop
+      - staging
+      - master
+      - production
+  tags:
+    - k8s
+  variables:
+    APP_NAME: gastroli-sidekiq
+    IMAGE: gastroli-api
+    NAMESPACE: staging
+    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  environment:
+    name: staging
+  script:
+    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
+    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+
+deploy_sidekiq_to_production:
+  stage: deploy_production
+  when: manual
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  only:
+    refs:
+      - devops
+      - production
+  tags:
+    - k8s
+  variables:
+    APP_NAME: gastroli-sidekiq
+    IMAGE: gastroli-api
+    NAMESPACE: production
+    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  environment:
+    name: production
+  script:
+    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
+    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+
+
+deploy_api_to_staging:
+  stage: deploy_staging
+  when: manual
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  only:
+    refs:
+      - devops
+      - develop
+      - staging
+      - master
+      - production
+  tags:
+    - k8s
+  variables:
+    NAMESPACE: staging
+    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  environment:
+    name: staging
+  script:
+    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
+    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+
+
+deploy_api_to_production:
+  stage: deploy_production
+  when: manual
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  only:
+    refs:
+      - devops
+      - production
+  tags:
+    - k8s
+  variables:
+    NAMESPACE: production
+    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  environment:
+    name: production
+  script:
+    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
+    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
