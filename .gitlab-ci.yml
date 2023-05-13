@@ -12,7 +12,7 @@ stages:
 
 variables:
   KUBECONFIG: /etc/deploy/kubeconfig.yaml
-  DOCKER_HOST: tcp://docker:2375  # Replace unix:///var/run/docker.sock with tcp://docker:2375
+#  DOCKER_HOST: unix:///var/run/docker.sock  # Replace unix:///var/run/docker.sock with tcp://docker:2375
   DOCKER_DRIVER: overlay2
 
 before_script:
