@@ -1,7 +1,7 @@
-image: docker:latest
+image: docker:19.03.15
 
 services:
-  - name: docker:dind
+  - name: docker:19.03.15-dind
     alias: docker
 
 stages:
@@ -10,11 +10,12 @@ stages:
 
 variables:
   KUBECONFIG: /etc/deploy/kubeconfig.yaml
-  DOCKER_HOST: tcp://docker:2375  # Replace unix:///var/run/docker.sock with tcp://docker:2375
+  DOCKER_HOST: tcp://localhost:2375  # Replace unix:///var/run/docker.sock with tcp://docker:2375
   DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
 
 before_script:
+  - docker version || true
+  - docker info || true
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 build:
