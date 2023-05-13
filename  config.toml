@@ -5,10 +5,10 @@ concurrent = 4
   token = "GR1348941TFgP5DRDsbQjSAnyGmo6"
   executor = "docker"
   [runners.docker]
-    network_mode = "bridge"
+    network_mode = "host"
     tls_verify = true
     image = "ubuntu:20.04"
-    privileged = false
+    privileged = true
     disable_entrypoint_overwrite = false
     oom_kill_disable = false
     disable_cache = false
