@@ -7,7 +7,6 @@ services:
     command: ["--privileged"]
 
 stages:
-  - find-docker-port
   - build
   - deploy
 
