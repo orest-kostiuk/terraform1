@@ -39,20 +39,23 @@ build:
   variables:
     RAILS_ENV: staging
     VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+  tags:
+    - k8s
   environment:
     name: dev
   script:
     - docker info
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#    - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
+
 
 
 deploy:
   stage: deploy
   image: bitnami/kubectl:latest
+  tags:
+    - k8s
   script:
     - echo $KUBECONFIG_FILE > $KUBECONFIG
     - kubectl config use-context my-eks-cluster
