@@ -30,6 +30,7 @@ build:
       - develop
       - staging
       - master
+      - main
       - production
   variables:
     RAILS_ENV: staging
