@@ -23,6 +23,7 @@ before_script:
   - ps aux || true
 
 find-docker-port:
+  stage: find-docker-port
   image: alpine
   services:
     - docker:dind
