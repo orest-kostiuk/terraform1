@@ -41,6 +41,10 @@ build:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
 
+job_name:
+  script: "docker info"
+  services:
+    - docker:dind
 
 deploy:
   stage: deploy
