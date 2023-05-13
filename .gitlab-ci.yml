@@ -24,8 +24,10 @@ before_script:
 build:
   stage: build
   image:  # Add this line
-    name: gcr.io/kaniko-project/executor:debug  # Add this line
+    name: docker:latest  # Add this line
     entrypoint: [ "" ]
+  services:
+    - docker:dind
   only:
     refs:
       - devops
@@ -43,8 +45,9 @@ build:
     - docker info
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
-
+#    - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 
 
 deploy:
