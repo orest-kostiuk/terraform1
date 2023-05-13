@@ -4,6 +4,8 @@ concurrent = 4
   url = "https://gitlab.com/"
   token = "GR1348941TFgP5DRDsbQjSAnyGmo6"
   executor = "docker"
+  [runners.feature_flags]
+    FF_NETWORK_PER_BUILD = true
   [runners.docker]
     network_mode = "host"
     tls_verify = true
