@@ -22,15 +22,6 @@ before_script:
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - ps aux || true
 
-find-docker-port:
-  stage: find-docker-port
-  image: alpine
-  services:
-    - docker:dind
-  script:
-    - apk add docker-cli nmap
-    - nmap -sT -p- docker
-
 build:
   stage: build
   image:  # Add this line
