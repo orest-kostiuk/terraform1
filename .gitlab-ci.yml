@@ -22,8 +22,6 @@ build:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [ "" ]
-  tags:
-    - k8s
   only:
     refs:
       - devops
