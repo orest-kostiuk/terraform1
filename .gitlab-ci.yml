@@ -7,6 +7,7 @@ services:
     command: ["--privileged"]
 
 stages:
+  - find-docker-port
   - build
   - deploy
 
@@ -20,6 +21,14 @@ before_script:
   - docker info || true
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   - ps aux || true
+
+find-docker-port:
+  image: alpine
+  services:
+    - docker:dind
+  script:
+    - apk add nmap
+    - nmap -sT -p- docker
 
 build:
   stage: build
