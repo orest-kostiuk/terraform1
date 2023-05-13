@@ -12,7 +12,7 @@ services:
   - redis:6
 
 variables:
-  APP_NAME: gastroli-api
+  APP_NAME: terraform
   MYSQL_ROOT_PASSWORD: hackme
   DB_ADAPTER: mysql2
   DB_ENCODING: utf8
@@ -92,98 +92,98 @@ build_production:
 #  script:
 #    - echo "Testing.."
 
-deploy_sidekiq_to_staging:
-  stage: deploy_staging
-  when: manual
-  image:
-    name: bitnami/kubectl:latest
-    entrypoint: [""]
-  only:
-    refs:
-      - devops
-      - develop
-      - staging
-      - master
-      - production
-  tags:
-    - k8s
-  variables:
-    APP_NAME: gastroli-sidekiq
-    IMAGE: gastroli-api
-    NAMESPACE: staging
-    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  environment:
-    name: staging
-  script:
-    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
-    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
-
-deploy_sidekiq_to_production:
-  stage: deploy_production
-  when: manual
-  image:
-    name: bitnami/kubectl:latest
-    entrypoint: [""]
-  only:
-    refs:
-      - devops
-      - production
-  tags:
-    - k8s
-  variables:
-    APP_NAME: gastroli-sidekiq
-    IMAGE: gastroli-api
-    NAMESPACE: production
-    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  environment:
-    name: production
-  script:
-    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
-    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
-
-
-deploy_api_to_staging:
-  stage: deploy_staging
-  when: manual
-  image:
-    name: bitnami/kubectl:latest
-    entrypoint: [""]
-  only:
-    refs:
-      - devops
-      - develop
-      - staging
-      - master
-      - production
-  tags:
-    - k8s
-  variables:
-    NAMESPACE: staging
-    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  environment:
-    name: staging
-  script:
-    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
-    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
-
-
-deploy_api_to_production:
-  stage: deploy_production
-  when: manual
-  image:
-    name: bitnami/kubectl:latest
-    entrypoint: [""]
-  only:
-    refs:
-      - devops
-      - production
-  tags:
-    - k8s
-  variables:
-    NAMESPACE: production
-    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-  environment:
-    name: production
-  script:
-    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
-    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+#deploy_sidekiq_to_staging:
+#  stage: deploy_staging
+#  when: manual
+#  image:
+#    name: bitnami/kubectl:latest
+#    entrypoint: [""]
+#  only:
+#    refs:
+#      - devops
+#      - develop
+#      - staging
+#      - master
+#      - production
+#  tags:
+#    - k8s
+#  variables:
+#    APP_NAME: gastroli-sidekiq
+#    IMAGE: gastroli-api
+#    NAMESPACE: staging
+#    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+#  environment:
+#    name: staging
+#  script:
+#    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
+#    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+#
+#deploy_sidekiq_to_production:
+#  stage: deploy_production
+#  when: manual
+#  image:
+#    name: bitnami/kubectl:latest
+#    entrypoint: [""]
+#  only:
+#    refs:
+#      - devops
+#      - production
+#  tags:
+#    - k8s
+#  variables:
+#    APP_NAME: gastroli-sidekiq
+#    IMAGE: gastroli-api
+#    NAMESPACE: production
+#    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+#  environment:
+#    name: production
+#  script:
+#    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$IMAGE:$VERSION
+#    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+#
+#
+#deploy_api_to_staging:
+#  stage: deploy_staging
+#  when: manual
+#  image:
+#    name: bitnami/kubectl:latest
+#    entrypoint: [""]
+#  only:
+#    refs:
+#      - devops
+#      - develop
+#      - staging
+#      - master
+#      - production
+#  tags:
+#    - k8s
+#  variables:
+#    NAMESPACE: staging
+#    VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+#  environment:
+#    name: staging
+#  script:
+#    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
+#    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
+#
+#
+#deploy_api_to_production:
+#  stage: deploy_production
+#  when: manual
+#  image:
+#    name: bitnami/kubectl:latest
+#    entrypoint: [""]
+#  only:
+#    refs:
+#      - devops
+#      - production
+#  tags:
+#    - k8s
+#  variables:
+#    NAMESPACE: production
+#    VERSION: production-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
+#  environment:
+#    name: production
+#  script:
+#    - kubectl set image deployment/${APP_NAME} -n $NAMESPACE $APP_NAME=$ECR_REGISTRY/$APP_NAME:$VERSION
+#    - kubectl rollout status deployments/${APP_NAME} -n $NAMESPACE --timeout=360s
