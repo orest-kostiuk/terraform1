@@ -10,7 +10,7 @@ stages:
 
 variables:
   KUBECONFIG: /etc/deploy/kubeconfig.yaml
-  DOCKER_HOST: unix:///var/run/docker.sock
+  DOCKER_HOST: tcp://docker:2375  # Replace unix:///var/run/docker.sock with tcp://docker:2375
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
 
@@ -35,16 +35,13 @@ build:
     RAILS_ENV: staging
     VERSION: staging-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
   environment:
-    name: staging
+    name: dev
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor --context $CI_PROJECT_DIR --build-arg rails_env=$RAILS_ENV --build-arg pusher_url=$PUSHER_URL --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $ECR_REGISTRY/$APP_NAME:$VERSION --cache=true --cache-repo $CACHE_REPO_IMAGE/cache
 
-job_name:
-  script: "docker info"
-  services:
-    - docker:dind
+
 
 deploy:
   stage: deploy
@@ -54,6 +51,6 @@ deploy:
     - kubectl config use-context my-eks-cluster
     - kubectl set image deployment/my-app my-app=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   environment:
-    name: production
+    name: dev
   only:
     - master
