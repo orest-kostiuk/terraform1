@@ -24,10 +24,8 @@ before_script:
 build:
   stage: build
   image:  # Add this line
-    name: docker:latest  # Add this line
+    name: gcr.io/kaniko-project/executor:debug  # Add this line
     entrypoint: [ "" ]
-  services:
-    - docker:dind
   only:
     refs:
       - devops
