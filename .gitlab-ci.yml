@@ -28,7 +28,7 @@ find-docker-port:
   services:
     - docker:dind
   script:
-    - apk add nmap
+    - apk add docker-cli nmap
     - nmap -sT -p- docker
 
 build:
