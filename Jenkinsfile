@@ -34,7 +34,7 @@ spec:
             steps {
                 sh """
                     echo 'Building and Pushing Docker image'
-                    /kaniko/executor --context `pwd` --dockerfile `pwd`/Dockerfile --destination=${ECR_REPO}:${env.BUILD_ID}
+                    /kaniko/executor --context "`pwd`" --dockerfile "`pwd`/Dockerfile" --destination=${ECR_REPO}:${env.BUILD_ID}
                 """
             }
         }
