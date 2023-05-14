@@ -38,5 +38,18 @@ spec:
                 """
             }
         }
+        stage('Deploy to Production') {
+            environment {
+                NAMESPACE = 'dev'
+                VERSION = "dev-${env.GIT_BRANCH}-${env.GIT_COMMIT.substring(0,7)}"
+                APP_NAME = 'terraform' // Define your app name
+            }
+            steps {
+                sh '''
+                    kubectl set image deployment/${APP_NAME} -n ${NAMESPACE} ${APP_NAME}=${ECR_REGISTRY}/${APP_NAME}:${VERSION}
+                    kubectl rollout status deployments/${APP_NAME} -n ${NAMESPACE} --timeout=360s
+                '''
+            }
+        }
     }
 }
