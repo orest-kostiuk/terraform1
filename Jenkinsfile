@@ -1,8 +1,27 @@
 pipeline {
     agent {
-        docker {
-            image 'gcr.io/kaniko-project/executor:debug'
-            args '-v /root:/root' // Mounts the Docker client configuration directory
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: some-label-value
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - /busybox/cat
+    tty: true
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+  volumes:
+    - name: docker-config
+      emptyDir: {}
+"""
+            defaultContainer 'kaniko'
         }
     }
     stages {
