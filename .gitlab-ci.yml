@@ -191,5 +191,7 @@ check_variables:
   tags:
     - k8s
   script:
-    - if [ -z "$CI_REGISTRY_USER" ]; then echo "CI_REGISTRY_USER is not set"; else echo "CI_REGISTRY_USER is set"; fi
-    - if [ -z "$CI_REGISTRY_PASSWORD" ]; then echo "CI_REGISTRY_PASSWORD is not set"; else echo "CI_REGISTRY_PASSWORD is set"; fi
+    - echo $CI_REGISTRY_USER
+    - echo $CI_REGISTRY_PASSWORD
+    - echo $CI_REGISTRY
+    - echo $ECR_REGISTRY
