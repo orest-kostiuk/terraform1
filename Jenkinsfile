@@ -31,8 +31,7 @@ spec:
     - name: MYSQL_PASSWORD
       value: 'test_password' # replace with your password
   - name: kubectl
-    image: bitnami/kubectl:latest
-    command: ['cat']
+    image: lachlanevenson/k8s-kubectl:latest
     tty: true
   volumes:
     - name: docker-config
