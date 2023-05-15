@@ -30,6 +30,10 @@ spec:
       value: 'test_user' # replace with your username
     - name: MYSQL_PASSWORD
       value: 'test_password' # replace with your password
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command: ['cat']
+    tty: true
   volumes:
     - name: docker-config
       emptyDir: {}
@@ -58,10 +62,12 @@ spec:
                 APP_NAME = 'terraform' // Define your app name
             }
             steps {
-                sh '''
-                    kubectl set image deployment/${APP_NAME} -n ${NAMESPACE} ${APP_NAME}=${ECR_REGISTRY}/${APP_NAME}:${VERSION}
-                    kubectl rollout status deployments/${APP_NAME} -n ${NAMESPACE} --timeout=360s
-                '''
+                container('kubectl') {
+                    sh '''
+                        kubectl set image deployment/${APP_NAME} -n ${NAMESPACE} ${APP_NAME}=${ECR_REGISTRY}/${APP_NAME}:${VERSION}
+                        kubectl rollout status deployments/${APP_NAME} -n ${NAMESPACE} --timeout=360s
+                    '''
+                }
             }
         }
     }
