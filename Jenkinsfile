@@ -17,6 +17,19 @@ spec:
     volumeMounts:
       - name: docker-config
         mountPath: /kaniko/.docker
+  - name: redis
+    image: redis:latest
+  - name: mysql
+    image: mysql:5.7
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: 'root_password' # replace with your root password
+    - name: MYSQL_DATABASE
+      value: 'test' # replace with your database name
+    - name: MYSQL_USER
+      value: 'test_user' # replace with your username
+    - name: MYSQL_PASSWORD
+      value: 'test_password' # replace with your password
   volumes:
     - name: docker-config
       emptyDir: {}
